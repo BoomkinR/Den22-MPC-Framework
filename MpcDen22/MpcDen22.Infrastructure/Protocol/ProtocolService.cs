@@ -1,3 +1,4 @@
+using System.Numerics;
 using Microsoft.Extensions.Logging;
 using MpcDen22.Infrastructure.Checks;
 using MpcDen22.Infrastructure.CommonModels;
@@ -75,5 +76,20 @@ public class ProtocolService : IProtocolService
     private bool CheckLoginExists(string login)
     {
         throw new NotImplementedException();
+    }
+    public  BigInteger GenerateShareCode(string input, BigInteger q)
+    {
+        char[] charArray = input.ToCharArray();
+        int l = charArray.Length;
+        BigInteger result = 0;
+
+        for (int i = 0; i < l; i++)
+        {
+            result += charArray[i] * BigInteger.Pow(2, 16 * i);
+        }
+
+        result = BigInteger.ModPow(result, 1, q);  // Вычисление остатка от деления на q
+
+        return result;
     }
 }
