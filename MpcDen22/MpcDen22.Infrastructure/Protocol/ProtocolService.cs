@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using MpcDen22.Infrastructure.Checks;
 using MpcDen22.Infrastructure.CommonModels;
 
 namespace MpcDen22.Infrastructure.Protocol;
@@ -7,11 +8,13 @@ public class ProtocolService : IProtocolService
 {
     private readonly ILogger<ProtocolService> _logger;
     private readonly IMachineInstant _machineInstant;
+    private readonly ICheckService _checkService;
 
-    public ProtocolService(ILogger<ProtocolService> logger, IMachineInstant machineInstant)
+    public ProtocolService(ILogger<ProtocolService> logger, IMachineInstant machineInstant, ICheckService checkService)
     {
         _logger = logger;
         _machineInstant = machineInstant;
+        _checkService = checkService;
     }
 
     public async Task RunProtocolExecution(List<string> shares, string login,
@@ -21,45 +24,35 @@ public class ProtocolService : IProtocolService
         _logger.LogInformation("StartingProtocol on {HostName}, with params: {Shares}, {Login},{RegType},{ShareType}",
             _machineInstant.CurrentHostName(), shares, login, registrationProtocolType, shareType);
 
-        var isLoginExists = CheckLoginExists(login);
-        if (registrationProtocolType == RegistrationProtocolType.Registration && isLoginExists ||
-            registrationProtocolType == RegistrationProtocolType.ChangePassword && !isLoginExists)
+        if (!await _checkService.IsSameLogin(login) || !await _checkService.IsSameShares(shares))
         {
-            _logger.LogError("Aborting protocol cause of LoginExistsError");
-            await AbbortProtocol();
-            await SendErrorCallback(new ProtocolResult
+            await AbortProtocol();
+            return;
+        };
+        
+        if (registrationProtocolType == RegistrationProtocolType.ChangePassword)
+        {
+            var isLoginExists = CheckLoginExists(login);
+            if (!isLoginExists)
             {
-                Result = 1,
-                TestNumber = TestNumbers.Login
-            });
+                _logger.LogError("Aborting protocol cause of LoginExistsError");
+                await AbortProtocol();
+                await SendErrorCallback(new ProtocolResult
+                {
+                    Result = 1,
+                    TestNumber = TestNumbers.Login
+                });
+            }
         }
 
         var passwordLengthCheck = CheckPasswordLength(shares);
-        var passwordUpperCaseExists = CheckPasswordUpperCaseExists(shares);
-        var passwordLowerCaseExists = CheckPasswordLowerCaseExists(shares);
-        var passwordNumeralExists = CheckPasswordNumeralExists(shares);
-        var passwordSpecialSymbolExists = CheckPasswordSpecialSymbolExists(shares);
+        var passwordUpperCaseExists = CheckPasswordIncludeSymbolGroups(shares, SymbolGroups.UpperCaseEng,
+            SymbolGroups.LowerCaseEng, SymbolGroups.Specials, SymbolGroups.Specials);
 
-        await Task.WhenAll(passwordLengthCheck, passwordUpperCaseExists, passwordLowerCaseExists, passwordNumeralExists,
-            passwordSpecialSymbolExists);
+        await Task.WhenAll(passwordLengthCheck, passwordUpperCaseExists);
     }
 
-    private Task<ProtocolResult> CheckPasswordNumeralExists(List<string> shares)
-    {
-        throw new NotImplementedException();
-    }
-
-    private Task<ProtocolResult> CheckPasswordSpecialSymbolExists(List<string> shares)
-    {
-        throw new NotImplementedException();
-    }
-
-    private Task<ProtocolResult> CheckPasswordLowerCaseExists(List<string> shares)
-    {
-        throw new NotImplementedException();
-    }
-
-    private Task<ProtocolResult> CheckPasswordUpperCaseExists(List<string> shares)
+    private Task<ProtocolResult> CheckPasswordIncludeSymbolGroups(List<string> shares, params HashSet<string>[] symbolGroups)
     {
         throw new NotImplementedException();
     }
@@ -74,7 +67,7 @@ public class ProtocolService : IProtocolService
         throw new NotImplementedException();
     }
 
-    private async Task AbbortProtocol()
+    private async Task AbortProtocol()
     {
         throw new NotImplementedException();
     }
