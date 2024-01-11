@@ -15,11 +15,6 @@ public class Replicator<T>
     {
     }
 
-    private readonly int mSize;
-    private readonly int mThreshold;
-    private readonly int mShareSize;
-    private readonly int mAdditiveShareSize;
-
     private List<List<int>> mCombinations;
     private Dictionary<List<int>, int> mRevComb;
     private List<IndexSet> mLookup;
@@ -32,14 +27,14 @@ public class Replicator<T>
     /// <param name="t">The privacy threshold.</param>
     public Replicator(int n, int t)
     {
-        mSize = n;
-        mThreshold = t;
-        mShareSize = Combinations.Binom(n - 1, t);
-        mAdditiveShareSize = Combinations.Binom(n, t);
+        Size = n;
+        Threshold = t;
+        ShareSize = Combinations.Binom(n - 1, t);
+        AdditiveShareSize = Combinations.Binom(n, t);
 
-        if (mSize <= mThreshold)
+        if (Size <= Threshold)
             throw new ArgumentException("Privacy threshold cannot be larger than n");
-        if (mThreshold == 0)
+        if (Threshold == 0)
             throw new ArgumentException("Privacy threshold cannot be 0");
 
         Init();
@@ -48,22 +43,22 @@ public class Replicator<T>
     /// <summary>
     /// Returns the number of shares this replicator can create.
     /// </summary>
-    public int Size => mSize;
+    public int Size { get; }
 
     /// <summary>
     /// Returns the privacy threshold of this replicator.
     /// </summary>
-    public int Threshold => mThreshold;
+    public int Threshold { get; }
 
     /// <summary>
     /// Returns the total number of additive shares used when creating a secret sharing.
     /// </summary>
-    public int AdditiveShareSize => mAdditiveShareSize;
+    public int AdditiveShareSize { get; }
 
     /// <summary>
     /// The size of an individual share.
     /// </summary>
-    public int ShareSize => mShareSize;
+    public int ShareSize { get; }
 
     /// <summary>
     /// The size of a share in bytes.
@@ -141,9 +136,9 @@ public class Replicator<T>
     {
         var redundant = ComputeRedundantAddShares(shares);
         Mp61 secret = new Mp61(123);
-        var additiveShares = new List<RingElement>(mAdditiveShareSize);
+        var additiveShares = new List<RingElement>(AdditiveShareSize);
 
-        for (int i = 0; i < mAdditiveShareSize; ++i)
+        for (int i = 0; i < AdditiveShareSize; ++i)
         {
             secret.Value = secret + redundant[i][0].Value;
         }
@@ -155,10 +150,10 @@ public class Replicator<T>
     {
         var redundant = ComputeRedundantAddShares(shares);
         Mp61 secret = default;
-        var additiveShares = new List<RingElement>(mAdditiveShareSize);
+        var additiveShares = new List<RingElement>(AdditiveShareSize);
 
         Mp61 comparison;
-        for (int i = 0; i < mAdditiveShareSize; ++i)
+        for (int i = 0; i < AdditiveShareSize; ++i)
         {
             // Check that all received shares are equal
             comparison = redundant[i][0];
@@ -178,15 +173,15 @@ public class Replicator<T>
 
     public List<List<Mp61>> ComputeRedundantAddShares(List<List<RingElement>> shares)
     {
-        var redundant = new List<List<Mp61>>(mAdditiveShareSize);
-        for (int i = 0; i < mAdditiveShareSize; ++i)
+        var redundant = new List<List<Mp61>>(AdditiveShareSize);
+        for (int i = 0; i < AdditiveShareSize; ++i)
         {
-            redundant[i] = new List<Mp61>(mSize - mThreshold);
+            redundant[i] = new List<Mp61>(Size - Threshold);
         }
 
-        for (int partyIdx = 0; partyIdx < mSize; ++partyIdx)
+        for (int partyIdx = 0; partyIdx < Size; ++partyIdx)
         {
-            for (int j = 0; j < mShareSize; ++j)
+            for (int j = 0; j < ShareSize; ++j)
             {
                 int shrIdx = mLookup[partyIdx][j];
                 redundant[shrIdx].Add((Mp61) shares[partyIdx][j]);
@@ -198,19 +193,19 @@ public class Replicator<T>
 
     private void Init()
     {
-        int k = mSize - mThreshold;
-        int m = mSize;
+        int k = Size - Threshold;
+        int m = Size;
         List<int> combination = new List<int>(k);
         CombinationsAndSets.NthCombination(combination, 0, m);
-        mLookup = new List<IndexSet>(mSize);
-        for (int i = 0; i < mSize; ++i)
+        mLookup = new List<IndexSet>(Size);
+        for (int i = 0; i < Size; ++i)
         {
             mLookup[i] = new IndexSet();
-            mLookup[i].Capacity = mShareSize;
+            mLookup[i].Capacity = ShareSize;
         }
 
         int shareIdx = 0;
-        mCombinations = new List<List<int>>(mAdditiveShareSize);
+        mCombinations = new List<List<int>>(AdditiveShareSize);
         do
         {
             // Fill in mCombinations
@@ -232,12 +227,12 @@ public class Replicator<T>
 
     public List<List<RingElement?>> AdditiveShare(RingElement secret, PRG prg)
     {
-        List<RingElement?> additiveShares = AdditiveSharing.ShareAdditive(secret, mAdditiveShareSize, prg);
-        List<List<RingElement?>> shares = new List<List<RingElement?>>(mSize);
-        for (int i = 0; i < mSize; ++i)
+        List<RingElement?> additiveShares = AdditiveSharing.ShareAdditive(secret, AdditiveShareSize, prg);
+        List<List<RingElement?>> shares = new List<List<RingElement?>>(Size);
+        for (int i = 0; i < Size; ++i)
         {
             List<RingElement?> share = new List<RingElement?>();
-            share.Capacity = mShareSize;
+            share.Capacity = ShareSize;
             IndexSet iset = IndexSetFor(i);
             foreach (int index in iset)
             {

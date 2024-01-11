@@ -4,40 +4,6 @@ namespace MpcDen22.Infrastructure.Input
 {
     public class InputSetup
     {
-        public class Correlator
-        {
-            private readonly List<List<PRG>> mPrgs;
-            private readonly List<PRG> mPrg;
-            private readonly int mShareSize;
-
-            public Correlator(List<List<PRG> prgs, List<PRG> prg, int shareSize)
-            {
-                mPrgs = prgs ?? throw new ArgumentNullException(nameof(prgs));
-                mPrg = prg ?? throw new ArgumentNullException(nameof(prg));
-                mShareSize = shareSize;
-            }
-
-            public Mp61 GetMask()
-            {
-                Mp61 v = new Field();
-                foreach (var prg in mPrg)
-                {
-                    v += GetRandomElement(prg);
-                }
-                return v;
-            }
-
-            public Shr GetMaskShare(int id)
-            {
-                var prgId = mPrgs[id];
-                List<Field> share = new List<Field>(mShareSize);
-                foreach (var prg in prgId)
-                {
-                    share.Add(GetRandomElement(prg));
-                }
-                return share;
-            }
-        }
 
         private readonly Network mNetwork;
         private readonly Mp61 mReplicator;
