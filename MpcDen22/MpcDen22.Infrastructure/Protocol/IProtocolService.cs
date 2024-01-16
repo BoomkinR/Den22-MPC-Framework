@@ -4,5 +4,6 @@ namespace MpcDen22.Infrastructure.Protocol;
 
 public interface IProtocolService
 {
-    Task RunProtocolExecution(List<string> shares, string login, RegistrationProtocolType registrationProtocolType, int shareType);
+    Task RunProtocolExecution(List<string> shares, string login, RegistrationProtocolType registrationProtocolType,
+        int shareType);
 }

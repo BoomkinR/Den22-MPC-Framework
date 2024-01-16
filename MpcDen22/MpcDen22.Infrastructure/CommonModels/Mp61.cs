@@ -4,7 +4,6 @@ namespace MpcDen22.Infrastructure.CommonModels;
 
 public class Mp61 : RingByModElement<ulong>
 {
-
     public Mp61(ulong value) : base(0x1FFFFFFFFFFFFFFF, value)
     {
     }
@@ -34,7 +33,7 @@ public class Mp61 : RingByModElement<ulong>
 
     public static ulong MultiplyMod(ulong x, ulong y, ulong mod)
     {
-        return (x * y) % mod;
+        return x * y % mod;
     }
 
     public static ulong Negate(ulong v, ulong mod)
@@ -46,7 +45,7 @@ public class Mp61 : RingByModElement<ulong>
     {
         // Пожалуйста, учтите, что этот метод может неэффективно работать для больших значений ulong.
         // В реальных случаях лучше использовать другие библиотеки для работы с большими числами.
-        return (ulong)BigInteger.ModPow((BigInteger)v, (BigInteger)(mod - 2), (BigInteger)mod);
+        return (ulong)BigInteger.ModPow(v, mod - 2, mod);
     }
 
     public static bool Equal(Mp61 x, Mp61 y)

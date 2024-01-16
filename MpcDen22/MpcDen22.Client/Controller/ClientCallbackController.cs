@@ -6,5 +6,4 @@ namespace MpcDen22.Client.Controller;
 [Route("client/callback")]
 public class ClientCallbackController : ControllerBase
 {
-    
 }

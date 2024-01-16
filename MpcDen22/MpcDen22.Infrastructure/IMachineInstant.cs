@@ -2,5 +2,8 @@ namespace MpcDen22.Infrastructure;
 
 public interface IMachineInstant
 {
-    string CurrentHostName();
+    string CurrentHostId();
+    int ParticipantCount();
+    bool IsConnectionsFull();
+    Task ConnectParticipant();
 }
