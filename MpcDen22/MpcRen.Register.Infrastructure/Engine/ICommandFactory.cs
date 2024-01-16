@@ -2,5 +2,5 @@
 
 public interface ICommandFactory
 {
-    Type GetTypeByNumber(int typeNumber);
+    Type GetTypeByNumber(int? typeNumber);
 }

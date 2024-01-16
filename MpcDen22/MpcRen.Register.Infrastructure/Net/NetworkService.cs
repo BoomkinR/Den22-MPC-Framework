@@ -1,43 +1,51 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using MpcRen.Register.Infrastructure.Engine;
+using MpcRen.Register.Infrastructure.Engine.Commands;
 
 namespace MpcRen.Register.Infrastructure.Net;
 
 public class NetworkService : INetworkService
 {
+    private readonly ICommandFactory _commandFactory;
+    private readonly IProcessorCommandController _processorCommandController;
+
+    public NetworkService(ICommandFactory commandFactory)
+    {
+        _commandFactory = commandFactory;
+    }
+
     public Task SendMessage(string msg, int partyIndex)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> InitializeParticipant(int Id, string address)
-    {
-        // посылает запрос если нет в списке ни в каком ( 2 списка отправленные кому и принятые от кого - сделать через queue)
-        // Отправляет ему запрос на подключение
-    }
-
     public async Task ProcessStream(NetworkStream stream, CancellationToken cancellationToken)
     {
-        
-        // Buffer for reading data
         var buffer = new byte[256];
         _ = await stream.ReadAsync(buffer, cancellationToken);
 
         var data = Encoding.ASCII.GetString(buffer);
         var jsonDocument = JsonSerializer.Deserialize<JsonDocument>(data);
-        var param1 = jsonDocument?.RootElement.GetProperty("type");
-        
+        var rootElement = jsonDocument?.RootElement;
+        var typeNumber = rootElement?.GetProperty("type");
+        var objectElement = (rootElement?.GetProperty("object"));
+        string responseString = string.Empty;
 
-        var response = Encoding.ASCII.GetBytes(data);
+        switch (typeNumber?.GetInt32())
+        {
+            case 1:
+                var initializeCommand = objectElement?.Deserialize<InitializeHostRequest>();
+                var response = await _processorCommandController.InitializeComponent(initializeCommand!);
+                responseString = JsonSerializer.Serialize(response);
+                break;
+            default:
+                break;
+        }
 
-        // Send back a response.
-        stream.Write(response, 0, response.Length);
-    }
 
-    public Task ReadMessage(Stream clientStream)
-    {
-        throw new NotImplementedException();
-    }
+        var bytes = Encoding.ASCII.GetBytes(responseString);
+        await stream.WriteAsync(bytes, cancellationToken);
     }
 }

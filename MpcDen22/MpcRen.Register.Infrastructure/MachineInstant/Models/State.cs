@@ -1,4 +1,4 @@
-﻿namespace MpcRen.Register.Server.MachineInstant.Models;
+﻿namespace MpcRen.Register.Infrastructure.MachineInstant.Models;
 
 public enum State
 {

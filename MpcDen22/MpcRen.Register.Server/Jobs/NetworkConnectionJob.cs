@@ -3,8 +3,8 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Hosting;
 using MpcRen.Register.Infrastructure;
+using MpcRen.Register.Infrastructure.MachineInstant;
 using MpcRen.Register.Infrastructure.Net;
-using MpcRen.Register.Server.MachineInstant;
 
 namespace MpcRen.Register.Server.Jobs;
 
@@ -52,10 +52,6 @@ public class NetworkConnectionJob : IHostedService
             {
                 Console.Write("Waiting for a connection... ");
 
-                while (!_machineInstant.IsConnectionsFull()) await _machineInstant.ConnectParticipant();
-
-                // Perform a blocking call to accept requests.
-                // You could also use server.AcceptSocket() here.
                 using var client = await server.AcceptTcpClientAsync(cancellationToken);
                 var stream = client.GetStream();
                 await _networkService.ProcessStream(stream, cancellationToken);
