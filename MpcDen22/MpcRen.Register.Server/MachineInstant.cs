@@ -1,28 +1,32 @@
 using System.Numerics;
+using Microsoft.Extensions.Options;
+using MpcRen.Register.Infrastructure.MachineInstant;
 using MpcRen.Register.Infrastructure.MachineInstant.Models;
+using MpcRen.Register.Server.Options;
+
 // ReSharper disable InconsistentNaming
 
-namespace MpcRen.Register.Infrastructure.MachineInstant;
+namespace MpcRen.Register.Server;
 
 public class MachineInstant : IMachineInstant
 {
-    private readonly int Name;
-
+    private readonly int Id;
     private State CurrentState;
     //Part-ts
     private readonly HashSet<int> Participants;
-    private BigInteger Prime = 11441180254372124519;
+    private readonly BigInteger Prime = 11441180254372124519;
+    
 
-    public MachineInstant(int name)
+    public MachineInstant(IOptions<ServerOptions> serverOptions)
     {
-        Name = name;
+        Id = serverOptions.Value.Number;
         Participants = new HashSet<int>();
         CurrentState = State.WaitForParticipants;
     }
     
     public int CurrentHostId()
     {
-        return Name;
+        return Id;
     }
 
     public int ParticipantCount()
@@ -42,5 +46,10 @@ public class MachineInstant : IMachineInstant
         {
             CurrentState = State.Active;
         }
+    }
+
+    public BigInteger GetPrime(int id)
+    {
+        return Prime;
     }
 }

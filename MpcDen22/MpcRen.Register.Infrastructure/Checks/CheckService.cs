@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace MpcRen.Register.Infrastructure.Checks;
 
 public class CheckService : ICheckService
@@ -7,7 +9,7 @@ public class CheckService : ICheckService
         throw new NotImplementedException();
     }
 
-    public Task<bool> IsSameShares(List<string> shares)
+    public Task<bool> IsSameShares(BigInteger[] shares)
     {
         throw new NotImplementedException();
     }

@@ -2,6 +2,7 @@ using System.Numerics;
 using Microsoft.Extensions.Logging;
 using MpcRen.Register.Infrastructure.Checks;
 using MpcRen.Register.Infrastructure.CommonModels;
+using MpcRen.Register.Infrastructure.MachineInstant;
 
 namespace MpcRen.Register.Infrastructure.Protocol;
 
@@ -18,19 +19,19 @@ public class ProtocolService : IProtocolService
         _checkService = checkService;
     }
 
-    public async Task RunProtocolExecution(List<string> shares, string login,
+    public async Task RunProtocolExecution(BigInteger[] shares, string login,
         RegistrationProtocolType registrationProtocolType,
         int shareType)
     {
         _logger.LogInformation("StartingProtocol on {HostName}, with params: {Shares}, {Login},{RegType},{ShareType}",
-            _machineInstant.CurrentHostName(), shares, login, registrationProtocolType, shareType);
+            _machineInstant.CurrentHostId(), shares, login, registrationProtocolType, shareType);
 
         if (!await _checkService.IsSameLogin(login) || !await _checkService.IsSameShares(shares))
         {
             await AbortProtocol();
             return;
-        };
-        
+        }
+
         if (registrationProtocolType == RegistrationProtocolType.ChangePassword)
         {
             var isLoginExists = CheckLoginExists(login);
@@ -53,12 +54,13 @@ public class ProtocolService : IProtocolService
         await Task.WhenAll(passwordLengthCheck, passwordUpperCaseExists);
     }
 
-    private Task<ProtocolResult> CheckPasswordIncludeSymbolGroups(List<string> shares, params HashSet<string>[] symbolGroups)
+    private Task<ProtocolResult> CheckPasswordIncludeSymbolGroups(BigInteger[] shares,
+        params HashSet<string>[] symbolGroups)
     {
         throw new NotImplementedException();
     }
 
-    private Task<ProtocolResult> CheckPasswordLength(List<string> shares)
+    private Task<ProtocolResult> CheckPasswordLength(BigInteger[] shares)
     {
         throw new NotImplementedException();
     }
@@ -77,19 +79,6 @@ public class ProtocolService : IProtocolService
     {
         throw new NotImplementedException();
     }
-    public  BigInteger GenerateShareCode(string input, BigInteger q)
-    {
-        char[] charArray = input.ToCharArray();
-        int l = charArray.Length;
-        BigInteger result = 0;
-
-        for (int i = 0; i < l; i++)
-        {
-            result += charArray[i] * BigInteger.Pow(2, 16 * i);
-        }
-
-        result = BigInteger.ModPow(result, 1, q);  // Вычисление остатка от деления на q
-
-        return result;
-    }
+    
+    
 }

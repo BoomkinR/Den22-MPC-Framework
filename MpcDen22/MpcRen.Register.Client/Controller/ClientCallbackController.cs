@@ -6,4 +6,11 @@ namespace MpcRen.Register.Client.Controller;
 [Route("client/callback")]
 public class ClientCallbackController : ControllerBase
 {
+
+    [HttpPost("computation-result")]
+    public IActionResult ComputationResult()
+    {
+        
+        return Ok();
+    }
 }

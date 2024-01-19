@@ -2,11 +2,13 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MpcRen.Register.Infrastructure.Extensions;
 using MpcRen.Register.Server.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddOptions<InstanceOptions>("Instance");
+builder.Services.AddOptions<InstanceOptions>("Server");
+builder.Services.AddSecretSharingServices();
 
 
 using var host = builder.Build();

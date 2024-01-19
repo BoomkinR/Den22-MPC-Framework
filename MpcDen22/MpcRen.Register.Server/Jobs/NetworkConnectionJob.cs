@@ -2,21 +2,23 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using MpcRen.Register.Infrastructure;
 using MpcRen.Register.Infrastructure.MachineInstant;
 using MpcRen.Register.Infrastructure.Net;
+using MpcRen.Register.Server.Options;
 
 namespace MpcRen.Register.Server.Jobs;
 
 public class NetworkConnectionJob : IHostedService
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly IMachineInstant _machineInstant;
+    private readonly ServerOptions _serverOptions;
     private readonly INetworkService _networkService;
-    public NetworkConnectionJob(IMachineInstant machineInstant, INetworkService networkService)
+    public NetworkConnectionJob(INetworkService networkService, IOptions<ServerOptions> hostOptions)
     {
-        _machineInstant = machineInstant;
         _networkService = networkService;
+        _serverOptions = hostOptions.Value;
     }
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
     public Task StartAsync(CancellationToken cancellationToken)
@@ -37,11 +39,10 @@ public class NetworkConnectionJob : IHostedService
     {
         TcpListener server = null;
         // Set the TcpListener on port 13000.
-        var port = 13000;
-        var localAddr = IPAddress.Parse("127.0.0.1");
+        var localAddr = IPAddress.Parse(_serverOptions.Address);
 
         // TcpListener server = new TcpListener(port);
-        server = new TcpListener(localAddr, port);
+        server = new TcpListener(localAddr, _serverOptions.Port);
 
         // Start listening for client requests.
         server.Start();

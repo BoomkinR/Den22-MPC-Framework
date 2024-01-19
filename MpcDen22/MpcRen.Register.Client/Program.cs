@@ -1,49 +1,65 @@
 using MpcRen.Register.Client;
+using MpcRen.Register.Client.Network;
+using MpcRen.Register.Infrastructure.Extensions;
+using MpcRen.Register.Infrastructure.Sharing;
 
-var builder = WebApplication.CreateBuilder(args);
+// var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// builder.Services.AddSwaggerGen();
+
+
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSecretSharingServices();
+builder.Services.AddHostedService<TestService>();
+builder.Services.AddHttpClient<HttpRenRegClient>();
+using IHost host = builder.Build();
 
-var app = builder.Build();
+await host.RunAsync();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+
+class TestService : IHostedService
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    private readonly ISecretShareService _secretShareService;
+    private readonly HttpRenRegClient _httpRenRegClient;
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    public TestService(ISecretShareService secretShareService, HttpRenRegClient httpRenRegClient)
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+        this._secretShareService = secretShareService;
+        _httpRenRegClient = httpRenRegClient;
+    }
 
-app.Run();
 
-namespace MpcRen.Register.Client
-{
-    internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        Console.WriteLine("=======IT IS CLIENT=======");
+        Console.Write("Lets register you ...\n Login: ");
+        var login = Console.ReadLine();
+        Console.Write("Password: ");
+        var pass = Console.ReadLine();
+        Console.WriteLine();
+
+        var (x1, x2, x3, x4) = _secretShareService.GenerateShares(pass!, 11441180254372124519);
+        Console.WriteLine($"x1: {x1}, x2: {x2}, x3: {x3}, x4: {x4}");
+
+        var shares = new[] { (x2, x3, x4), (x1, x3, x4), (x1, x2, x4), (x1, x2, x3) };
+
+        for (int i = 0; i < 4; i++)
+        {
+            _httpRenRegClient.SendMessageToServer(login!, shares[i], i);
+        }
+
+        var mes = _secretShareService.GetValueFromShares(x1, x2, x3, x4, 11441180254372124519);
+        Console.WriteLine($"mes in result = {mes}");
+
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }
