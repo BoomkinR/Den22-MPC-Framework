@@ -5,7 +5,7 @@ namespace MpcRen.Register.Server;
 
 public class RegisterRequest
 {
-    [JsonPropertyName("secrets")] public BigInteger[] SecretShares { get; set; }
+    [JsonPropertyName("secrets")] public (BigInteger[], BigInteger[],BigInteger[]) SecretShares { get; set; }
 
     [JsonPropertyName("login")] public string Login { get; set; }
 

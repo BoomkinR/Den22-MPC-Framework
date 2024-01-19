@@ -5,6 +5,7 @@ namespace MpcRen.Register.Infrastructure.Protocol;
 
 public interface IProtocolService
 {
-    Task RunProtocolExecution(BigInteger[] shares, string login, RegistrationProtocolType registrationProtocolType,
+    Task RunProtocolExecution((BigInteger[], BigInteger[], BigInteger[]) shares, string login,
+        RegistrationProtocolType registrationProtocolType,
         int shareType);
 }

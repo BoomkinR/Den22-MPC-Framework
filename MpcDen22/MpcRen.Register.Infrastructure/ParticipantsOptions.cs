@@ -1,4 +1,4 @@
-namespace MpcRen.Register.Server.Options;
+namespace MpcRen.Register.Infrastructure;
 
 public class ParticipantsOptions
 {
@@ -7,5 +7,6 @@ public class ParticipantsOptions
     public class Participant
     {
         public string Address { get; set; }
+        public int Port { get; set; } 
     }
 }

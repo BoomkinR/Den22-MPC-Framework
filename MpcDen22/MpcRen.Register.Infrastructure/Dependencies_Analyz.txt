@@ -1,9 +1,0 @@
-frn/check.h"IS
-frn/corr.h"
-frn/input.h"
-frn/mult.h"
-frn/network.h"
-frn/input_corr.h"
-frn/shr.h"
-frn/tcp_network.h"
-frn/util.h"

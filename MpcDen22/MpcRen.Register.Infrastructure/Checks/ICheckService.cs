@@ -5,5 +5,5 @@ namespace MpcRen.Register.Infrastructure.Checks;
 public interface ICheckService
 {
     Task<bool> IsSameLogin(string login);
-    Task<bool> IsSameShares(BigInteger[] shares);
+    Task<bool> IsSameShares((BigInteger[], BigInteger[], BigInteger[]) shares);
 }

@@ -48,7 +48,7 @@ public class MachineInstant : IMachineInstant
         }
     }
 
-    public BigInteger GetPrime(int id)
+    public BigInteger GetPrime()
     {
         return Prime;
     }
