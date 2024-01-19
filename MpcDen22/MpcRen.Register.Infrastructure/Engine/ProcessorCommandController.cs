@@ -23,6 +23,10 @@ public class ProcessorCommandController : IProcessorCommandController
         {
             _machineInstant.ConnectParticipant(initializeHostRequest.Id);
         }
+        else
+        {
+            Console.WriteLine("All hosts connected");
+        }
 
         return Task.FromResult(new InitializeHostResponse
         {

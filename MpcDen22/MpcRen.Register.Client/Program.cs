@@ -33,7 +33,7 @@ class TestService : IHostedService
     }
 
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         Console.WriteLine("=======IT IS CLIENT=======");
         Console.Write("Lets register you ...\n Login: ");
@@ -46,16 +46,12 @@ class TestService : IHostedService
 
         var shares = new[] { (x2, x3, x4), (x1, x3, x4), (x1, x2, x4), (x1, x2, x3) };
         Console.WriteLine("Waiting for server connecting ...");
-        Task.Delay(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+        await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
         Console.WriteLine("Server is not connected. Shut down ...");
         for (int i = 0; i < 4; i++)
         {
-            _httpRenRegClient.SendMessageToServer(login!, shares[i], i);
+            await _httpRenRegClient.SendMessageToServer(login!, shares[i], i);
         }
-
-        
-
-        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
