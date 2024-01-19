@@ -15,7 +15,7 @@ HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSecretSharingServices();
 builder.Services.AddHostedService<TestService>();
-builder.Services.AddHttpClient<HttpRenRegClient>();
+builder.Services.AddScoped<IHttpRenRegClient, HttpRenRegClient>();
 using IHost host = builder.Build();
 
 await host.RunAsync();
@@ -24,9 +24,9 @@ await host.RunAsync();
 class TestService : IHostedService
 {
     private readonly ISecretShareService _secretShareService;
-    private readonly HttpRenRegClient _httpRenRegClient;
+    private readonly IHttpRenRegClient _httpRenRegClient;
 
-    public TestService(ISecretShareService secretShareService, HttpRenRegClient httpRenRegClient)
+    public TestService(ISecretShareService secretShareService, IHttpRenRegClient httpRenRegClient)
     {
         this._secretShareService = secretShareService;
         _httpRenRegClient = httpRenRegClient;
@@ -43,17 +43,17 @@ class TestService : IHostedService
         Console.WriteLine();
 
         var (x1, x2, x3, x4) = _secretShareService.GenerateShares(pass!, 11441180254372124519);
-        Console.WriteLine($"x1: {x1}, x2: {x2}, x3: {x3}, x4: {x4}");
 
         var shares = new[] { (x2, x3, x4), (x1, x3, x4), (x1, x2, x4), (x1, x2, x3) };
-
+        Console.WriteLine("Waiting for server connecting ...");
+        Task.Delay(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+        Console.WriteLine("Server is not connected. Shut down ...");
         for (int i = 0; i < 4; i++)
         {
             _httpRenRegClient.SendMessageToServer(login!, shares[i], i);
         }
 
-        var mes = _secretShareService.GetValueFromShares(x1, x2, x3, x4, 11441180254372124519);
-        Console.WriteLine($"mes in result = {mes}");
+        
 
         return Task.CompletedTask;
     }
